@@ -47,7 +47,7 @@ public sealed class AgentExecutor(
                 Messages =
                 {
                     new LlmMessage("system", prompt),
-                    new LlmMessage("user", input.ToJsonString(JsonSupport.SerializerOptions))
+                    new LlmMessage("user", "Workflow context JSON:\n" + input.ToJsonString(JsonSupport.SerializerOptions))
                 }
             }, ct);
 

@@ -109,7 +109,7 @@ ai-business-orchestrator/
 - EF Core DbContext、PostgreSQL 映射与初始 Migration。
 - YAML Workflow 加载与串行执行器，支持 `skill`、`agent`、`review`、`depends_on`、步骤状态持久化、失败记录、人工审核暂停和 `context_json` 合并。
 - Skill Runtime：`IAiSkill`、`SkillRegistry`、`SkillExecutor`，内置 `company_resolution`、`collect_materials`、`parse_uploaded_file`、`extract_basic_facts`、`calculate_financial_ratios`、`generate_markdown_report`、`generate_credit_report_docx`。
-- Agent Runtime：`agents.yaml`、Prompt、Schema 加载，`MockLlmProvider`，JSON 输出和轻量 Schema 校验，`agent_run` 落库。
+- Agent Runtime：`agents.yaml`、Prompt、Schema 加载，OpenAI-compatible LLM Provider，JSON 输出和轻量 Schema 校验，`agent_run` 落库。测试可显式切换 `MockLlmProvider`。
 - API：Task、Review、Artifact、Evidence、Trace、Workflow 查询。
 - Web 管理台：任务队列、新建信评任务、启动 Workflow、步骤详情、审核处理、证据标记、报告预览。
 - 集成测试覆盖创建信评任务、执行到人工审核、审核通过、生成 Markdown artifact。
@@ -122,7 +122,7 @@ ai-business-orchestrator/
 dotnet restore
 dotnet build AiOrchestrator.sln
 dotnet test AiOrchestrator.sln
-dotnet run --project src/AiOrchestrator.Api --urls http://localhost:5080
+dotnet run --project src/AiOrchestrator.Api --urls http://localhost:5073
 ```
 
 启动 Web 管理台：
@@ -139,7 +139,7 @@ npm run dev -- --host 0.0.0.0
 http://localhost:5173
 ```
 
-Web 开发服务器会把 `/api` 代理到 `http://localhost:5080`。
+Web 开发服务器会把 `/api` 代理到 `http://localhost:5073`。
 
 使用 PostgreSQL 时：
 
@@ -147,7 +147,7 @@ Web 开发服务器会把 `/api` 代理到 `http://localhost:5080`。
 export Database__UseInMemory=false
 export ConnectionStrings__Postgres='Host=localhost;Port=5432;Database=ai_orchestrator;Username=postgres;Password=postgres'
 dotnet ef database update --project src/AiOrchestrator.Infrastructure --startup-project src/AiOrchestrator.Api
-dotnet run --project src/AiOrchestrator.Api --urls http://localhost:5080
+dotnet run --project src/AiOrchestrator.Api --urls http://localhost:5073
 ```
 
 API 项目也绑定了本仓库专用 User Secrets：
@@ -169,7 +169,7 @@ dotnet user-secrets set "Database:UseInMemory" "false" --project src/AiOrchestra
 创建任务：
 
 ```bash
-curl -s -X POST http://localhost:5080/api/tasks \
+curl -s -X POST http://localhost:5073/api/tasks \
   -H 'Content-Type: application/json' \
   -d '{
     "scenarioCode": "credit_rating",
@@ -186,21 +186,21 @@ curl -s -X POST http://localhost:5080/api/tasks \
 启动任务：
 
 ```bash
-curl -s -X POST http://localhost:5080/api/tasks/{taskId}/start
+curl -s -X POST http://localhost:5073/api/tasks/{taskId}/start
 ```
 
 查询任务详情，确认状态为 `WaitingReview`：
 
 ```bash
-curl -s http://localhost:5080/api/tasks/{taskId}
+curl -s http://localhost:5073/api/tasks/{taskId}
 ```
 
 查询待审核项并通过审核：
 
 ```bash
-curl -s 'http://localhost:5080/api/reviews?status=Pending'
+curl -s 'http://localhost:5073/api/reviews?status=Pending'
 
-curl -s -X POST http://localhost:5080/api/reviews/{reviewId}/approve \
+curl -s -X POST http://localhost:5073/api/reviews/{reviewId}/approve \
   -H 'Content-Type: application/json' \
   -d '{"comment":"同意生成草稿"}'
 ```
@@ -208,11 +208,63 @@ curl -s -X POST http://localhost:5080/api/reviews/{reviewId}/approve \
 审核通过后再次查询任务详情，状态应为 `Succeeded`，并可查看 Markdown 报告 artifact：
 
 ```bash
-curl -s http://localhost:5080/api/tasks/{taskId}/artifacts
-curl -s http://localhost:5080/api/tasks/{taskId}/evidence
-curl -s http://localhost:5080/api/tasks/{taskId}/trace
+curl -s http://localhost:5073/api/tasks/{taskId}/artifacts
+curl -s http://localhost:5073/api/tasks/{taskId}/evidence
+curl -s http://localhost:5073/api/tasks/{taskId}/trace
 ```
 
-## Mock LLM 说明
+## 公共数据 API
 
-第一阶段默认使用 `MockLlmProvider`。Agent 只输出符合场景 Schema 的结构化 JSON，不自由调用 Skill，不直接写数据库；财务指标由 `calculate_financial_ratios` 这类确定性 Skill 计算。后续接入 OpenAI-compatible、DeepSeek、Qwen 时，应继续保留 Schema 校验和 Evidence 绑定约束。
+第一版提供受控公共数据源接口，用于后续 Skill/Workflow 引用，不允许 Agent 自由联网。已支持上市公司搜索、基础信息和最新股价查询：
+
+```bash
+curl -s 'http://localhost:5073/api/public-data/companies/search?keyword=apple&market=us'
+curl -s 'http://localhost:5073/api/public-data/companies/AAPL?market=us'
+curl -s 'http://localhost:5073/api/public-data/quotes/AAPL?market=us'
+```
+
+股价第一版通过公开 Stooq CSV 数据源适配，配置项：
+
+```json
+{
+  "PublicData": {
+    "StooqBaseUrl": "https://stooq.com"
+  }
+}
+```
+
+## LLM 说明
+
+项目默认使用真实 OpenAI-compatible LLM。Agent 只输出符合场景 Schema 的结构化 JSON，不自由调用 Skill，不直接写数据库；财务指标由 `calculate_financial_ratios` 这类确定性 Skill 计算。
+
+本地配置真实 LLM：
+
+```bash
+dotnet user-secrets set "Llm:Provider" "OpenAICompatible" --project src/AiOrchestrator.Api/AiOrchestrator.Api.csproj
+dotnet user-secrets set "Llm:BaseUrl" "https://api.openai.com/v1" --project src/AiOrchestrator.Api/AiOrchestrator.Api.csproj
+dotnet user-secrets set "Llm:ApiKey" "<your-api-key>" --project src/AiOrchestrator.Api/AiOrchestrator.Api.csproj
+dotnet user-secrets set "Llm:DefaultModel" "gpt-4.1-mini" --project src/AiOrchestrator.Api/AiOrchestrator.Api.csproj
+```
+
+DeepSeek、Qwen 等兼容 `/v1/chat/completions` 的服务只需要替换 `Llm:BaseUrl`、`Llm:ApiKey`、`Llm:DefaultModel`。如果某个兼容服务不支持 `response_format: json_object`，可关闭该开关：
+
+```bash
+dotnet user-secrets set "Llm:UseJsonResponseFormat" "false" --project src/AiOrchestrator.Api/AiOrchestrator.Api.csproj
+```
+
+真实 LLM 模式仍会保存 `agent_run`，并对输出做 JSON 解析与 Schema 校验；校验失败时对应 workflow step 会失败。
+
+真实 LLM 调用会默认记录 JSON Lines 日志，包含请求 payload、响应 body、HTTP 状态码、耗时和错误信息；`Authorization` 会写成 `<redacted>`，不会记录 API key。默认位置：
+
+```text
+logs/llm/llm-calls-YYYYMMDD.jsonl
+```
+
+可调整或关闭：
+
+```bash
+dotnet user-secrets set "Llm:LogDirectory" "logs/llm" --project src/AiOrchestrator.Api/AiOrchestrator.Api.csproj
+dotnet user-secrets set "Llm:LogRequests" "false" --project src/AiOrchestrator.Api/AiOrchestrator.Api.csproj
+```
+
+测试项目会显式覆盖 `Llm:Provider=Mock`，不会调用真实模型。

@@ -251,13 +251,13 @@ public class GenerateMarkdownReportSkill : AiSkillBase
         markdown.AppendLine();
         markdown.AppendLine("> 本报告为 AI 辅助生成的内部草稿，需人工审核后方可作为正式材料使用。");
         markdown.AppendLine();
-        AppendSection(markdown, "一、公司概况", steps["extract_basic_facts"]?["company_profile"]);
-        AppendSection(markdown, "二、财务分析", steps["financial_analysis"]);
-        AppendSection(markdown, "三、行业与经营分析", steps["industry_analysis"]);
-        AppendSection(markdown, "四、主要风险因素", steps["risk_analysis"]);
-        AppendSection(markdown, "五、初步评级意见", steps["rating_committee"]);
-        AppendSection(markdown, "六、反方审查意见", steps["devil_review"]);
-        AppendSection(markdown, "七、人工审核", steps["human_review"]);
+        AppendCompanyProfile(markdown, steps["extract_basic_facts"]?["company_profile"]);
+        AppendFinancialAnalysis(markdown, steps["financial_analysis"], steps["calculate_financial_ratios"]);
+        AppendIndustryAnalysis(markdown, steps["industry_analysis"]);
+        AppendRiskAnalysis(markdown, steps["risk_analysis"]);
+        AppendRatingOpinion(markdown, steps["rating_committee"]);
+        AppendDevilReview(markdown, steps["devil_review"]);
+        AppendHumanReview(markdown, steps["human_review"]);
         markdown.AppendLine("## 八、证据列表");
         markdown.AppendLine();
         markdown.AppendLine("证据明细请以 evidence API 返回为准。");
@@ -285,12 +285,183 @@ public class GenerateMarkdownReportSkill : AiSkillBase
         });
     }
 
-    private static void AppendSection(StringBuilder markdown, string title, JsonNode? content)
+    private static void AppendCompanyProfile(StringBuilder markdown, JsonNode? profile)
     {
-        markdown.AppendLine($"## {title}");
+        markdown.AppendLine("## 一、公司概况");
         markdown.AppendLine();
-        markdown.AppendLine(content?.ToJsonString(JsonSupport.SerializerOptions) ?? "{}");
+        markdown.AppendLine($"- 公司名称：{Text(profile?["company_name"])}");
+        markdown.AppendLine($"- 报告期间：{Text(profile?["period"])}");
+        markdown.AppendLine($"- 业务摘要：{Text(profile?["business_summary"])}");
+        if (profile?["financials"] is JsonObject financials)
+        {
+            markdown.AppendLine("- 已提取财务字段：");
+            foreach (var (key, value) in financials)
+            {
+                markdown.AppendLine($"  - {Label(key)}：{Money(value)}");
+            }
+        }
+
         markdown.AppendLine();
+    }
+
+    private static void AppendFinancialAnalysis(StringBuilder markdown, JsonNode? analysis, JsonNode? ratioStep)
+    {
+        markdown.AppendLine("## 二、财务分析");
+        markdown.AppendLine();
+        markdown.AppendLine(Text(analysis?["summary"]));
+        AppendClaims(markdown, "优势", analysis?["strengths"]);
+        AppendClaims(markdown, "弱项", analysis?["weaknesses"]);
+        if (ratioStep?["ratios"] is JsonObject ratios)
+        {
+            markdown.AppendLine("### 关键财务指标");
+            foreach (var (key, value) in ratios)
+            {
+                markdown.AppendLine($"- {Label(key)}：{Ratio(value)}");
+            }
+            markdown.AppendLine();
+        }
+        AppendStringList(markdown, "不确定事项", analysis?["uncertainties"]);
+    }
+
+    private static void AppendIndustryAnalysis(StringBuilder markdown, JsonNode? analysis)
+    {
+        markdown.AppendLine("## 三、行业与经营分析");
+        markdown.AppendLine();
+        markdown.AppendLine(Text(analysis?["summary"]));
+        markdown.AppendLine($"- 行业位置：{Text(analysis?["industry_position"])}");
+        AppendStringList(markdown, "机会", analysis?["opportunities"]);
+        AppendStringList(markdown, "行业风险", analysis?["risks"]);
+        AppendStringList(markdown, "不确定事项", analysis?["uncertainties"]);
+    }
+
+    private static void AppendRiskAnalysis(StringBuilder markdown, JsonNode? analysis)
+    {
+        markdown.AppendLine("## 四、主要风险因素");
+        markdown.AppendLine();
+        markdown.AppendLine(Text(analysis?["summary"]));
+        markdown.AppendLine($"- 综合风险等级：{Text(analysis?["overall_risk_level"])}");
+        if (analysis?["risks"] is JsonArray risks)
+        {
+            foreach (var risk in risks)
+            {
+                markdown.AppendLine($"- {Text(risk?["risk_type"])}（{Text(risk?["severity"])}）：{Text(risk?["reason"])} {EvidenceText(risk?["evidence_ids"])}");
+            }
+            markdown.AppendLine();
+        }
+        AppendStringList(markdown, "不确定事项", analysis?["uncertainties"]);
+    }
+
+    private static void AppendRatingOpinion(StringBuilder markdown, JsonNode? opinion)
+    {
+        markdown.AppendLine("## 五、初步评级意见");
+        markdown.AppendLine();
+        markdown.AppendLine(Text(opinion?["summary"]));
+        markdown.AppendLine($"- 评级方向：{Text(opinion?["rating_direction"])}");
+        markdown.AppendLine($"- 需要人工审核：{Text(opinion?["requires_human_review"])}");
+        AppendStringList(markdown, "支持因素", opinion?["supporting_factors"]);
+        AppendStringList(markdown, "约束因素", opinion?["constraint_factors"]);
+    }
+
+    private static void AppendDevilReview(StringBuilder markdown, JsonNode? review)
+    {
+        markdown.AppendLine("## 六、反方审查意见");
+        markdown.AppendLine();
+        markdown.AppendLine(Text(review?["summary"]));
+        AppendStringList(markdown, "反方异议", review?["objections"]);
+        AppendStringList(markdown, "缺失证据", review?["missing_evidence"]);
+        AppendStringList(markdown, "建议人工复核点", review?["suggested_review_points"]);
+    }
+
+    private static void AppendHumanReview(StringBuilder markdown, JsonNode? review)
+    {
+        markdown.AppendLine("## 七、人工审核");
+        markdown.AppendLine();
+        markdown.AppendLine($"- 审核状态：{Text(review?["status"])}");
+        markdown.AppendLine($"- 审核意见：{Text(review?["comment"])}");
+        markdown.AppendLine();
+    }
+
+    private static void AppendClaims(StringBuilder markdown, string title, JsonNode? claims)
+    {
+        if (claims is not JsonArray array || array.Count == 0)
+        {
+            return;
+        }
+
+        markdown.AppendLine($"### {title}");
+        foreach (var item in array)
+        {
+            markdown.AppendLine($"- {Text(item?["claim"])}（置信度：{Ratio(item?["confidence"])}）{EvidenceText(item?["evidence_ids"])}");
+        }
+        markdown.AppendLine();
+    }
+
+    private static void AppendStringList(StringBuilder markdown, string title, JsonNode? values)
+    {
+        if (values is not JsonArray array || array.Count == 0)
+        {
+            return;
+        }
+
+        markdown.AppendLine($"### {title}");
+        foreach (var item in array)
+        {
+            markdown.AppendLine($"- {Text(item)}");
+        }
+        markdown.AppendLine();
+    }
+
+    private static string Text(JsonNode? node)
+    {
+        if (node is null)
+        {
+            return "未提供";
+        }
+
+        if (node is JsonValue)
+        {
+            return node.ToString();
+        }
+
+        return node.ToJsonString(JsonSupport.SerializerOptions);
+    }
+
+    private static string EvidenceText(JsonNode? node)
+    {
+        if (node is not JsonArray ids || ids.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        return $"（证据：{string.Join(", ", ids.Select(Text))}）";
+    }
+
+    private static string Money(JsonNode? node)
+    {
+        return decimal.TryParse(node?.ToString(), out var value) ? $"{value / 100_000_000m:0.##} 亿元" : "未提取";
+    }
+
+    private static string Ratio(JsonNode? node)
+    {
+        return decimal.TryParse(node?.ToString(), out var value) ? $"{value:0.####}" : "未计算";
+    }
+
+    private static string Label(string key)
+    {
+        return key switch
+        {
+            "revenue" => "营业收入",
+            "net_profit" => "净利润",
+            "total_assets" => "总资产",
+            "total_liabilities" => "总负债",
+            "current_assets" => "流动资产",
+            "current_liabilities" => "流动负债",
+            "cash" => "货币资金",
+            "asset_liability_ratio" => "资产负债率",
+            "current_ratio" => "流动比率",
+            "net_margin" => "净利率",
+            _ => key
+        };
     }
 }
 

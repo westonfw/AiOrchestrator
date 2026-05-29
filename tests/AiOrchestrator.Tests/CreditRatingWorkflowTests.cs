@@ -9,6 +9,27 @@ namespace AiOrchestrator.Tests;
 public sealed class CreditRatingWorkflowTests
 {
     [Fact]
+    public async Task PublicDataEndpoints_ReturnBuiltInCompanyProfile()
+    {
+        await using var factory = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.UseSetting("Database:UseInMemory", "true");
+                builder.UseSetting("Database:InMemoryName", Guid.NewGuid().ToString("N"));
+                builder.UseSetting("Llm:Provider", "Mock");
+            });
+        using var client = factory.CreateClient();
+
+        var search = await client.GetFromJsonAsync<JsonElement>("/api/public-data/companies/search?keyword=apple&market=us");
+        Assert.True(search.GetProperty("success").GetBoolean());
+        Assert.NotEmpty(search.GetProperty("data").GetProperty("items").EnumerateArray());
+
+        var profile = await client.GetFromJsonAsync<JsonElement>("/api/public-data/companies/AAPL?market=us");
+        Assert.True(profile.GetProperty("success").GetBoolean());
+        Assert.Equal("AAPL", profile.GetProperty("data").GetProperty("symbol").GetString());
+    }
+
+    [Fact]
     public async Task CreditRatingWorkflow_PausesForReview_AndContinuesToMarkdownArtifact()
     {
         await using var factory = new WebApplicationFactory<Program>()
@@ -16,6 +37,7 @@ public sealed class CreditRatingWorkflowTests
             {
                 builder.UseSetting("Database:UseInMemory", "true");
                 builder.UseSetting("Database:InMemoryName", Guid.NewGuid().ToString("N"));
+                builder.UseSetting("Llm:Provider", "Mock");
             });
         using var client = factory.CreateClient();
 

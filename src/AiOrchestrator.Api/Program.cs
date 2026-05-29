@@ -19,7 +19,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSkillRuntime();
-builder.Services.AddAgentRuntime();
+builder.Services.AddAgentRuntime(builder.Configuration);
 builder.Services.AddWorkflowRuntime();
 
 var app = builder.Build();
@@ -216,6 +216,40 @@ app.MapGet("/api/tasks/{taskId:guid}/trace", async (Guid taskId, IOrchestrationS
 {
     var trace = await store.ListTraceAsync(taskId, ct);
     return Results.Ok(ApiResponse<object>.Ok(new { Items = trace }));
+});
+
+app.MapGet("/api/public-data/companies/search", async (
+    string keyword,
+    string? market,
+    IPublicMarketDataProvider publicDataProvider,
+    CancellationToken ct) =>
+{
+    var results = await publicDataProvider.SearchCompaniesAsync(keyword, market, ct);
+    return Results.Ok(ApiResponse<object>.Ok(new { Items = results }));
+});
+
+app.MapGet("/api/public-data/companies/{symbol}", async (
+    string symbol,
+    string? market,
+    IPublicMarketDataProvider publicDataProvider,
+    CancellationToken ct) =>
+{
+    var profile = await publicDataProvider.GetCompanyProfileAsync(symbol, market, ct);
+    return profile is null
+        ? Results.NotFound(ApiResponse<object>.Fail("not_found", "Company profile not found."))
+        : Results.Ok(ApiResponse<object>.Ok(profile));
+});
+
+app.MapGet("/api/public-data/quotes/{symbol}", async (
+    string symbol,
+    string? market,
+    IPublicMarketDataProvider publicDataProvider,
+    CancellationToken ct) =>
+{
+    var quote = await publicDataProvider.GetLatestQuoteAsync(symbol, market, ct);
+    return quote is null
+        ? Results.NotFound(ApiResponse<object>.Fail("not_found", "Quote not found from configured public data source."))
+        : Results.Ok(ApiResponse<object>.Ok(quote));
 });
 
 app.Run();

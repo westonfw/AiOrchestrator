@@ -29,6 +29,10 @@ public static class DependencyInjection
 
         services.AddScoped<IOrchestrationStore, EfOrchestrationStore>();
         services.AddSingleton<IJsonSchemaValidator, BasicJsonSchemaValidator>();
+        services.AddHttpClient<IPublicMarketDataProvider, PublicMarketDataProvider>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(20);
+        });
         return services;
     }
 }

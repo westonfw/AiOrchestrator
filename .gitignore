@@ -10,5 +10,6 @@ build/
 *.suo
 *.db
 *.log
+logs/
 artifacts/
 uploads/

@@ -136,6 +136,10 @@
   margin-top: 0;
 }
 
+.surface h5 {
+  margin: 0 0 10px;
+}
+
 .timeline-item {
   display: grid;
   gap: 8px;
@@ -164,7 +168,157 @@
 
 .markdown-preview {
   max-height: 70vh;
-  font-size: 13px;
+  font-size: 14px;
+  background: #ffffff;
+}
+
+.markdown-preview h1,
+.markdown-preview h2,
+.markdown-preview h3 {
+  color: #15252d;
+  margin: 18px 0 8px;
+}
+
+.markdown-preview h1 {
+  font-size: 24px;
+}
+
+.markdown-preview h2 {
+  font-size: 18px;
+  border-bottom: 1px solid #e3e8ea;
+  padding-bottom: 6px;
+}
+
+.markdown-preview p,
+.markdown-preview li {
+  line-height: 1.75;
+}
+
+.business-panel,
+.analysis-box,
+.review-panel {
+  background: #fbfcfc;
+  border: 1px solid #dde4e3;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.business-descriptions {
+  margin-bottom: 12px;
+}
+
+.long-text {
+  display: block;
+  max-height: 220px;
+  overflow: auto;
+  line-height: 1.6;
+}
+
+.analysis-box {
+  display: grid;
+  gap: 10px;
+}
+
+.analysis-title {
+  color: #12333a;
+  font-weight: 700;
+}
+
+.analysis-box p {
+  margin: 0;
+  color: #263b42;
+  line-height: 1.65;
+}
+
+.kv-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.kv-item {
+  border: 1px solid #e0e7e8;
+  border-radius: 6px;
+  padding: 10px;
+  background: #ffffff;
+  min-height: 68px;
+  display: grid;
+  gap: 6px;
+}
+
+.kv-item span,
+.muted {
+  color: #6c7a80;
+  font-size: 12px;
+}
+
+.kv-item strong {
+  color: #142f38;
+  font-size: 15px;
+}
+
+.claim-list,
+.simple-list,
+.risk-list {
+  display: grid;
+  gap: 8px;
+}
+
+.claim-item,
+.risk-item {
+  background: #ffffff;
+  border: 1px solid #e0e7e8;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.claim-item {
+  display: grid;
+  gap: 8px;
+}
+
+.risk-item p {
+  margin: 8px 0;
+}
+
+.simple-list ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+
+.simple-list li {
+  line-height: 1.6;
+}
+
+.evidence-refs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.review-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.review-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.review-head h4 {
+  margin: 0 0 8px;
+}
+
+.review-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
 }
 
 .quote {
@@ -212,7 +366,9 @@
   }
 
   .metric-grid,
-  .two-column {
+  .two-column,
+  .review-grid,
+  .kv-grid {
     grid-template-columns: 1fr;
   }
 }
