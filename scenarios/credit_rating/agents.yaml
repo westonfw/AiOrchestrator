@@ -1,0 +1,46 @@
+agents:
+  - code: financial_analyst
+    name: 财务分析师
+    description: 基于财务数据、指标和证据，输出结构化财务分析。
+    model: mock
+    temperature: 0.2
+    system_prompt_file: prompts/financial_analyst.md
+    output_schema: schemas/financial_analysis.schema.json
+    allowed_skills:
+      - calculate_financial_ratios
+
+  - code: industry_analyst
+    name: 行业分析师
+    description: 基于公司主营业务和资料，输出结构化行业分析。
+    model: mock
+    temperature: 0.2
+    system_prompt_file: prompts/industry_analyst.md
+    output_schema: schemas/industry_analysis.schema.json
+    allowed_skills: []
+
+  - code: risk_analyst
+    name: 风险分析师
+    description: 识别债务、流动性、诉讼、舆情、治理等风险。
+    model: mock
+    temperature: 0.2
+    system_prompt_file: prompts/risk_analyst.md
+    output_schema: schemas/risk_analysis.schema.json
+    allowed_skills: []
+
+  - code: rating_committee
+    name: 评级委员会
+    description: 汇总各分析结论，形成初步评级意见。
+    model: mock
+    temperature: 0.1
+    system_prompt_file: prompts/rating_committee.md
+    output_schema: schemas/rating_opinion.schema.json
+    allowed_skills: []
+
+  - code: devil_advocate
+    name: 反方审查员
+    description: 对评级结论进行反方审查，指出证据不足和潜在漏洞。
+    model: mock
+    temperature: 0.1
+    system_prompt_file: prompts/devil_advocate.md
+    output_schema: schemas/devil_review.schema.json
+    allowed_skills: []

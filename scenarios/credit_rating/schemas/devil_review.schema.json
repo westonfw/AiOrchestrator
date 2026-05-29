@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "summary",
+    "objections",
+    "missing_evidence",
+    "suggested_review_points"
+  ],
+  "properties": {
+    "summary": {
+      "type": "string"
+    },
+    "objections": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "missing_evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "suggested_review_points": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

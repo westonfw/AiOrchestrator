@@ -1,0 +1,14 @@
+bin/
+obj/
+.vs/
+.vscode/
+node_modules/
+dist/
+build/
+.env
+*.user
+*.suo
+*.db
+*.log
+artifacts/
+uploads/

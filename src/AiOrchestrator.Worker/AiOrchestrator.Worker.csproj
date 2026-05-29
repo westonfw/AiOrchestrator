@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-AiOrchestrator.Worker-fd42f9c2-a472-483f-ae71-43d34154a090</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AiOrchestrator.Application\AiOrchestrator.Application.csproj" />
+    <ProjectReference Include="..\AiOrchestrator.Infrastructure\AiOrchestrator.Infrastructure.csproj" />
+    <ProjectReference Include="..\AiOrchestrator.Workflow\AiOrchestrator.Workflow.csproj" />
+  </ItemGroup>
+</Project>
