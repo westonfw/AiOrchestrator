@@ -60,6 +60,12 @@ public interface IJsonSchemaValidator
     SchemaValidationResult Validate(JsonNode? schema, JsonNode? payload);
 }
 
+public interface ITaskQueue
+{
+    Task EnqueueStartWorkflowAsync(Guid taskId, CancellationToken ct = default);
+    Task EnqueueContinueWorkflowAsync(Guid workflowRunId, CancellationToken ct = default);
+}
+
 public interface IOrchestrationStore
 {
     Task<AiTask?> FindTaskAsync(Guid taskId, CancellationToken ct = default);

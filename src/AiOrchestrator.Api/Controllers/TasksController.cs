@@ -42,11 +42,18 @@ public sealed class TasksController : ControllerBase
     [HttpPost("{taskId:guid}/start")]
     public async Task<ActionResult<ApiResponse<object>>> StartAsync(
         Guid taskId,
-        IWorkflowExecutor executor,
+        ITaskQueue queue,
+        IOrchestrationStore store,
         CancellationToken ct)
     {
-        var workflowRunId = await executor.StartAsync(taskId, ct);
-        return Ok(ApiResponse<object>.Ok(new { WorkflowRunId = workflowRunId }));
+        var task = await store.FindTaskAsync(taskId, ct);
+        if (task is null)
+        {
+            return NotFound(ApiResponse<object>.Fail("not_found", "Task not found."));
+        }
+
+        await queue.EnqueueStartWorkflowAsync(taskId, ct);
+        return Ok(ApiResponse<object>.Ok(new { TaskId = taskId }));
     }
 
     [HttpGet]

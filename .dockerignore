@@ -1,0 +1,12 @@
+**/.git
+**/.vs
+**/.idea
+**/bin
+**/obj
+**/node_modules
+src/AiOrchestrator.Web/dist
+logs
+*.user
+*.suo
+.env
+.env.*

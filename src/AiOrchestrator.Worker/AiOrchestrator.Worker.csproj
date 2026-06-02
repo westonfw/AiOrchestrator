@@ -9,11 +9,15 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AiOrchestrator.Application\AiOrchestrator.Application.csproj" />
     <ProjectReference Include="..\AiOrchestrator.Infrastructure\AiOrchestrator.Infrastructure.csproj" />
     <ProjectReference Include="..\AiOrchestrator.Workflow\AiOrchestrator.Workflow.csproj" />
+    <ProjectReference Include="..\AiOrchestrator.Agents\AiOrchestrator.Agents.csproj" />
+    <ProjectReference Include="..\AiOrchestrator.Skills\AiOrchestrator.Skills.csproj" />
   </ItemGroup>
+
 </Project>

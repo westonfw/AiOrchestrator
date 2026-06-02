@@ -27,9 +27,9 @@ public sealed class ReviewsController : ControllerBase
         Guid reviewId,
         ReviewActionRequest? request,
         IOrchestrationStore store,
-        IWorkflowExecutor executor,
+        ITaskQueue queue,
         CancellationToken ct) =>
-        CompleteReviewAsync(reviewId, ReviewStatus.Approved, request, store, executor, ct);
+        CompleteReviewAsync(reviewId, ReviewStatus.Approved, request, store, queue, ct);
 
     [HttpPost("{reviewId:guid}/reject")]
     public async Task<ActionResult<ApiResponse<object>>> RejectAsync(
@@ -79,16 +79,16 @@ public sealed class ReviewsController : ControllerBase
         Guid reviewId,
         ReviewActionRequest? request,
         IOrchestrationStore store,
-        IWorkflowExecutor executor,
+        ITaskQueue queue,
         CancellationToken ct) =>
-        CompleteReviewAsync(reviewId, ReviewStatus.Modified, request, store, executor, ct);
+        CompleteReviewAsync(reviewId, ReviewStatus.Modified, request, store, queue, ct);
 
     private async Task<ActionResult<ApiResponse<object>>> CompleteReviewAsync(
         Guid reviewId,
         ReviewStatus reviewStatus,
         ReviewActionRequest? request,
         IOrchestrationStore store,
-        IWorkflowExecutor executor,
+        ITaskQueue queue,
         CancellationToken ct)
     {
         var review = await store.FindReviewAsync(reviewId, ct);
@@ -149,7 +149,7 @@ public sealed class ReviewsController : ControllerBase
         }, ct);
         await store.SaveChangesAsync(ct);
 
-        await executor.ContinueAsync(workflowRun.Id, ct);
+        await queue.EnqueueContinueWorkflowAsync(workflowRun.Id, ct);
         return Ok(ApiResponse<object>.Ok(new { review.Id, Status = review.Status.ToString(), WorkflowRunId = workflowRun.Id }));
     }
 }

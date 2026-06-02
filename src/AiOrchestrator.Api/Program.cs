@@ -4,6 +4,7 @@ using AiOrchestrator.Infrastructure;
 using AiOrchestrator.Skills;
 using AiOrchestrator.Workflow;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +34,10 @@ using (var scope = app.Services.CreateScope())
     if (db.Database.IsInMemory())
     {
         db.Database.EnsureCreated();
+    }
+    else
+    {
+        await db.Database.MigrateAsync();
     }
 }
 
