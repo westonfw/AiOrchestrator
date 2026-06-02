@@ -1,4 +1,5 @@
 import {
+  ApartmentOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
@@ -8,6 +9,7 @@ import {
   PlayCircleOutlined,
   PlusOutlined,
   ReloadOutlined,
+  RobotOutlined,
   SafetyCertificateOutlined,
 } from '@ant-design/icons'
 import {
@@ -36,6 +38,8 @@ import type { ReactNode } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import './App.css'
+import AgentTemplatePage from './pages/AgentTemplatePage'
+import WorkflowTemplatePage from './pages/WorkflowTemplatePage'
 import {
   approveReview,
   createTask,
@@ -63,7 +67,10 @@ const { Header, Sider, Content } = Layout
 const sampleMaterials =
   '测试科技股份有限公司主营企业软件。2024年营业收入 12 亿元，净利润 1.2 亿元，总资产 30 亿元，总负债 16 亿元，流动资产 10 亿元，流动负债 8 亿元。'
 
+type AppPage = 'tasks' | 'workflow-templates' | 'agent-templates'
+
 function App() {
+  const [page, setPage] = useState<AppPage>('tasks')
   const [tasks, setTasks] = useState<AiTask[]>([])
   const [selectedTaskId, setSelectedTaskId] = useState<string>()
   const [detail, setDetail] = useState<TaskDetail>()
@@ -195,16 +202,53 @@ function App() {
           <span>AI Business Orchestrator</span>
         </div>
         <Space>
-          <Button icon={<ReloadOutlined />} onClick={() => void refresh()} loading={busy}>
-            刷新
+          <Button
+            type={page === 'tasks' ? 'primary' : 'text'}
+            icon={<CloudSyncOutlined />}
+            onClick={() => setPage('tasks')}
+          >
+            任务队列
           </Button>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
-            新建信评任务
+          <Button
+            type={page === 'workflow-templates' ? 'primary' : 'text'}
+            icon={<ApartmentOutlined />}
+            onClick={() => setPage('workflow-templates')}
+          >
+            工作流模板
+          </Button>
+          <Button
+            type={page === 'agent-templates' ? 'primary' : 'text'}
+            icon={<RobotOutlined />}
+            onClick={() => setPage('agent-templates')}
+          >
+            Agent 模板
           </Button>
         </Space>
+        <div className="topbar-right">
+          {page === 'tasks' && (
+            <Space>
+              <Button icon={<ReloadOutlined />} onClick={() => void refresh()} loading={busy}>
+                刷新
+              </Button>
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
+                新建信评任务
+              </Button>
+            </Space>
+          )}
+        </div>
       </Header>
 
-      <Layout className="workspace">
+      {page === 'workflow-templates' && (
+        <Content style={{ padding: 24, overflowY: 'auto' }}>
+          <WorkflowTemplatePage />
+        </Content>
+      )}
+      {page === 'agent-templates' && (
+        <Content style={{ padding: 24, overflowY: 'auto' }}>
+          <AgentTemplatePage />
+        </Content>
+      )}
+      <Layout className="workspace" style={{ display: page === 'tasks' ? undefined : 'none' }}>
         <Sider width={330} className="task-rail">
           <div className="rail-head">
             <Typography.Title level={4}>任务队列</Typography.Title>

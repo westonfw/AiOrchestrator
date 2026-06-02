@@ -7,7 +7,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddWorkflowRuntime(this IServiceCollection services)
     {
-        services.AddSingleton<IWorkflowDefinitionLoader, WorkflowDefinitionLoader>();
+        services.AddScoped<IWorkflowDefinitionLoader, WorkflowDefinitionLoader>();
         services.AddScoped<IWorkflowExecutor, WorkflowExecutor>();
         return services;
     }

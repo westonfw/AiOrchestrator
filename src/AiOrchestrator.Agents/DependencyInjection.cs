@@ -8,7 +8,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddAgentRuntime(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<IAgentDefinitionLoader, AgentDefinitionLoader>();
+        services.AddScoped<IAgentDefinitionLoader, AgentDefinitionLoader>();
         services.AddSingleton<IPromptLoader, PromptLoader>();
         services.AddSingleton<SchemaLoader>();
         services.AddSingleton<ILlmProvider>(serviceProvider =>

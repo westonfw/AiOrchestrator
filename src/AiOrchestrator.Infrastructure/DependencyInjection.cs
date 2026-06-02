@@ -30,6 +30,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IOrchestrationStore, EfOrchestrationStore>();
+        services.AddScoped<ITemplateStore, EfTemplateStore>();
         services.AddSingleton<IJsonSchemaValidator, BasicJsonSchemaValidator>();
         services.AddHttpClient<IPublicMarketDataProvider, PublicMarketDataProvider>(client =>
         {

@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using AiOrchestrator.Application;
 using AiOrchestrator.Domain;
 
@@ -19,8 +20,24 @@ public sealed class AgentExecutor(
         }
 
         var agent = await agentDefinitionLoader.LoadAsync(context.ScenarioCode, step.Agent, ct);
-        var prompt = await promptLoader.LoadAsync(context.ScenarioCode, agent.SystemPromptFile, ct);
-        var schema = await schemaLoader.LoadAsync(context.ScenarioCode, step.OutputSchema ?? agent.OutputSchema, ct);
+
+        // Use inline text from DB template; fall back to file-based loading for built-in agents
+        var prompt = !string.IsNullOrWhiteSpace(agent.SystemPromptText)
+            ? agent.SystemPromptText
+            : await promptLoader.LoadAsync(context.ScenarioCode, agent.SystemPromptFile, ct);
+
+        JsonNode? schema;
+        if (!string.IsNullOrWhiteSpace(agent.OutputSchemaJsonText))
+        {
+            schema = System.Text.Json.Nodes.JsonNode.Parse(agent.OutputSchemaJsonText);
+        }
+        else
+        {
+            var schemaPath = step.OutputSchema ?? agent.OutputSchema;
+            schema = string.IsNullOrWhiteSpace(schemaPath)
+                ? null
+                : await schemaLoader.LoadAsync(context.ScenarioCode, schemaPath, ct);
+        }
         var input = JsonSupport.CloneObject(context.Context);
 
         var agentRun = new AgentRun

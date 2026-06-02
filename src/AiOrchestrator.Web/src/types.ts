@@ -135,3 +135,79 @@ export type ReviewListData = {
 export type TraceListData = {
   items: TraceEvent[]
 }
+
+// ── Template types ────────────────────────────────────────────────────────────
+
+export type WorkflowStepTemplateItem = {
+  id: string
+  stepId: string
+  name: string
+  type: 'skill' | 'agent' | 'review'
+  skillCode?: string | null
+  agentCode?: string | null
+  dependsOn: string[]
+  sortOrder: number
+  dataSourceBindingsJson: string
+}
+
+export type WorkflowTemplate = {
+  id: string
+  scenarioCode: string
+  name: string
+  version: string
+  isActive: boolean
+  inputSchemaJson: string
+  createdBy?: string | null
+  createdAt: string
+  updatedAt: string
+  steps: WorkflowStepTemplateItem[]
+}
+
+export type WorkflowTemplateSummary = {
+  id: string
+  scenarioCode: string
+  name: string
+  version: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+  stepCount: number
+}
+
+export type AgentTemplate = {
+  id: string
+  scenarioCode: string
+  agentCode: string
+  name: string
+  description: string
+  model: string
+  temperature: number
+  systemPrompt: string
+  outputSchemaJson: string
+  allowedSkills: string[]
+  allowedDataSources: string[]
+  maxToolCalls: number
+  createdBy?: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type AgentTemplateSummary = {
+  id: string
+  scenarioCode: string
+  agentCode: string
+  name: string
+  description: string
+  model: string
+  temperature: number
+  createdAt: string
+  updatedAt: string
+}
+
+export type SkillInfo = {
+  code: string
+  name: string
+  description: string
+  isSensitive: boolean
+  requireReview: boolean
+}

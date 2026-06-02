@@ -15,6 +15,9 @@ public sealed class AiOrchestratorDbContext(DbContextOptions<AiOrchestratorDbCon
     public DbSet<ReviewItem> ReviewItems => Set<ReviewItem>();
     public DbSet<UploadedFile> UploadedFiles => Set<UploadedFile>();
     public DbSet<TraceEvent> TraceEvents => Set<TraceEvent>();
+    public DbSet<WorkflowTemplate> WorkflowTemplates => Set<WorkflowTemplate>();
+    public DbSet<WorkflowStepTemplate> WorkflowStepTemplates => Set<WorkflowStepTemplate>();
+    public DbSet<AgentTemplate> AgentTemplates => Set<AgentTemplate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -206,6 +209,62 @@ public sealed class AiOrchestratorDbContext(DbContextOptions<AiOrchestratorDbCon
             entity.HasOne(x => x.WorkflowRun).WithMany().HasForeignKey(x => x.WorkflowRunId);
             entity.HasOne(x => x.StepRun).WithMany().HasForeignKey(x => x.StepRunId);
             entity.HasIndex(x => x.TaskId).HasDatabaseName("idx_trace_task");
+        });
+
+        modelBuilder.Entity<WorkflowTemplate>(entity =>
+        {
+            entity.ToTable("workflow_template");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id");
+            entity.Property(x => x.ScenarioCode).HasColumnName("scenario_code").HasMaxLength(100).IsRequired();
+            entity.Property(x => x.Name).HasColumnName("name").HasMaxLength(500).IsRequired();
+            entity.Property(x => x.Version).HasColumnName("version").HasMaxLength(50).IsRequired();
+            entity.Property(x => x.IsActive).HasColumnName("is_active");
+            entity.Property(x => x.InputSchemaJson).HasColumnName("input_schema_json").HasColumnType("jsonb").IsRequired();
+            entity.Property(x => x.CreatedBy).HasColumnName("created_by").HasMaxLength(100);
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at");
+            entity.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+            entity.HasMany(x => x.Steps).WithOne(x => x.WorkflowTemplate).HasForeignKey(x => x.WorkflowTemplateId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(x => new { x.ScenarioCode, x.IsActive }).HasDatabaseName("idx_workflow_template_scenario_active");
+        });
+
+        modelBuilder.Entity<WorkflowStepTemplate>(entity =>
+        {
+            entity.ToTable("workflow_step_template");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id");
+            entity.Property(x => x.WorkflowTemplateId).HasColumnName("workflow_template_id");
+            entity.Property(x => x.StepId).HasColumnName("step_id").HasMaxLength(100).IsRequired();
+            entity.Property(x => x.Name).HasColumnName("name").HasMaxLength(500).IsRequired();
+            entity.Property(x => x.Type).HasColumnName("type").HasMaxLength(50).IsRequired();
+            entity.Property(x => x.SkillCode).HasColumnName("skill_code").HasMaxLength(100);
+            entity.Property(x => x.AgentCode).HasColumnName("agent_code").HasMaxLength(100);
+            entity.Property(x => x.DependsOnJson).HasColumnName("depends_on_json").HasColumnType("jsonb").IsRequired();
+            entity.Property(x => x.SortOrder).HasColumnName("sort_order");
+            entity.Property(x => x.DataSourceBindingsJson).HasColumnName("data_source_bindings_json").HasColumnType("jsonb").IsRequired();
+            entity.HasIndex(x => x.WorkflowTemplateId).HasDatabaseName("idx_step_template_workflow");
+        });
+
+        modelBuilder.Entity<AgentTemplate>(entity =>
+        {
+            entity.ToTable("agent_template");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id");
+            entity.Property(x => x.ScenarioCode).HasColumnName("scenario_code").HasMaxLength(100).IsRequired();
+            entity.Property(x => x.AgentCode).HasColumnName("agent_code").HasMaxLength(100).IsRequired();
+            entity.Property(x => x.Name).HasColumnName("name").HasMaxLength(500).IsRequired();
+            entity.Property(x => x.Description).HasColumnName("description");
+            entity.Property(x => x.Model).HasColumnName("model").HasMaxLength(100).IsRequired();
+            entity.Property(x => x.Temperature).HasColumnName("temperature").HasPrecision(5, 4);
+            entity.Property(x => x.SystemPrompt).HasColumnName("system_prompt").IsRequired();
+            entity.Property(x => x.OutputSchemaJson).HasColumnName("output_schema_json").HasColumnType("jsonb").IsRequired();
+            entity.Property(x => x.AllowedSkillsJson).HasColumnName("allowed_skills_json").HasColumnType("jsonb").IsRequired();
+            entity.Property(x => x.AllowedDataSourcesJson).HasColumnName("allowed_data_sources_json").HasColumnType("jsonb").IsRequired();
+            entity.Property(x => x.MaxToolCalls).HasColumnName("max_tool_calls");
+            entity.Property(x => x.CreatedBy).HasColumnName("created_by").HasMaxLength(100);
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at");
+            entity.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+            entity.HasIndex(x => new { x.ScenarioCode, x.AgentCode }).HasDatabaseName("idx_agent_template_scenario_code");
         });
     }
 }

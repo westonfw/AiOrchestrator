@@ -3,7 +3,6 @@ using AiOrchestrator.Infrastructure;
 using AiOrchestrator.Skills;
 using AiOrchestrator.Workflow;
 using AiOrchestrator.Worker;
-using Microsoft.EntityFrameworkCore;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -15,15 +14,6 @@ builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();
 
-// Apply pending EF migrations before starting to consume messages.
-// MigrateAsync is idempotent and uses an advisory lock — safe to call from multiple instances.
-using (var scope = host.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AiOrchestratorDbContext>();
-    if (!db.Database.IsInMemory())
-    {
-        await db.Database.MigrateAsync();
-    }
-}
-
+// Migrations are applied by the API on startup.
+// Worker only waits for the database to be reachable before processing messages.
 await host.RunAsync();

@@ -144,6 +144,60 @@ public sealed class UploadedFile
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }
 
+// ── Template entities ──────────────────────────────────────────────────────
+
+public sealed class WorkflowTemplate
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string ScenarioCode { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Version { get; set; } = "1.0.0";
+    public bool IsActive { get; set; }
+    public string InputSchemaJson { get; set; } = "{}";
+    public string? CreatedBy { get; set; }
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public List<WorkflowStepTemplate> Steps { get; set; } = new();
+}
+
+public sealed class WorkflowStepTemplate
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid WorkflowTemplateId { get; set; }
+    public WorkflowTemplate WorkflowTemplate { get; set; } = null!;
+    public string StepId { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty; // skill | agent | review
+    public string? SkillCode { get; set; }
+    public string? AgentCode { get; set; }
+    public string DependsOnJson { get; set; } = "[]";
+    public int SortOrder { get; set; }
+    // JSON object for future data source bindings: {"param": "datasource_code"}
+    public string DataSourceBindingsJson { get; set; } = "{}";
+}
+
+public sealed class AgentTemplate
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string ScenarioCode { get; set; } = string.Empty;
+    public string AgentCode { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string Model { get; set; } = "default";
+    public decimal Temperature { get; set; } = 0.2m;
+    public string SystemPrompt { get; set; } = string.Empty;
+    public string OutputSchemaJson { get; set; } = "{}";
+    // JSON arrays — AllowedDataSources reserved for future data source integration
+    public string AllowedSkillsJson { get; set; } = "[]";
+    public string AllowedDataSourcesJson { get; set; } = "[]";
+    public int MaxToolCalls { get; set; } = 10;
+    public string? CreatedBy { get; set; }
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+}
+
+// ── End Template entities ───────────────────────────────────────────────────
+
 public sealed class TraceEvent
 {
     public Guid Id { get; set; } = Guid.NewGuid();

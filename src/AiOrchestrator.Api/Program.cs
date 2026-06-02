@@ -1,4 +1,6 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using AiOrchestrator.Application;
 using AiOrchestrator.Agents;
 using AiOrchestrator.Infrastructure;
 using AiOrchestrator.Skills;
@@ -21,6 +23,19 @@ builder.Services.AddAgentRuntime(builder.Configuration);
 builder.Services.AddWorkflowRuntime();
 
 var app = builder.Build();
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        var json = JsonSerializer.Serialize(
+            ApiResponse<object>.Fail("internal_error", "An unexpected error occurred."),
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        await context.Response.WriteAsync(json);
+    });
+});
 
 if (app.Environment.IsDevelopment())
 {

@@ -6,11 +6,16 @@
 .topbar {
   height: 56px;
   padding: 0 20px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   background: #ffffff;
   border-bottom: 1px solid #dfe4e8;
+}
+
+.topbar-right {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .brand {

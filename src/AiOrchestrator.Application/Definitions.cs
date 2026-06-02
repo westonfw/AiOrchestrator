@@ -47,6 +47,12 @@ public sealed class AgentDefinition
 
     [YamlMember(Alias = "max_retries")]
     public int MaxRetries { get; set; } = 0;
+
+    // Populated when loaded from DB (overrides file-based loading)
+    [YamlIgnore] public string? SystemPromptText { get; set; }
+    [YamlIgnore] public string? OutputSchemaJsonText { get; set; }
+    [YamlIgnore] public List<string> AllowedDataSources { get; set; } = new();
+    [YamlIgnore] public int MaxToolCalls { get; set; } = 10;
 }
 
 public sealed class AgentDefinitionFile

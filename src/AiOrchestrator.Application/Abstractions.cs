@@ -66,6 +66,28 @@ public interface ITaskQueue
     Task EnqueueContinueWorkflowAsync(Guid workflowRunId, CancellationToken ct = default);
 }
 
+public interface ITemplateStore
+{
+    // WorkflowTemplate
+    Task<WorkflowTemplate?> FindActiveWorkflowAsync(string scenarioCode, CancellationToken ct = default);
+    Task<WorkflowTemplate?> FindWorkflowByIdAsync(Guid id, CancellationToken ct = default);
+    Task<List<WorkflowTemplate>> ListWorkflowsAsync(string? scenarioCode, CancellationToken ct = default);
+    Task AddWorkflowAsync(WorkflowTemplate template, CancellationToken ct = default);
+    void ClearWorkflowSteps(WorkflowTemplate template);
+    Task AddWorkflowStepsAsync(IEnumerable<WorkflowStepTemplate> steps, CancellationToken ct = default);
+    void RemoveWorkflow(WorkflowTemplate template);
+    Task DeactivateWorkflowsAsync(string scenarioCode, CancellationToken ct = default);
+
+    // AgentTemplate
+    Task<AgentTemplate?> FindAgentAsync(string scenarioCode, string agentCode, CancellationToken ct = default);
+    Task<AgentTemplate?> FindAgentByIdAsync(Guid id, CancellationToken ct = default);
+    Task<List<AgentTemplate>> ListAgentsAsync(string? scenarioCode, CancellationToken ct = default);
+    Task AddAgentAsync(AgentTemplate template, CancellationToken ct = default);
+    void RemoveAgent(AgentTemplate template);
+
+    Task SaveChangesAsync(CancellationToken ct = default);
+}
+
 public interface IOrchestrationStore
 {
     Task<AiTask?> FindTaskAsync(Guid taskId, CancellationToken ct = default);
